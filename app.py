@@ -2,7 +2,7 @@ import flask
 import pathlib
 
 
-app = flask.Flask(__name__)
+app: flask.Flask = flask.Flask(__name__)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -12,11 +12,15 @@ def index():
     
     elif flask.request.method == "POST":
         file = flask.request.files.get("file")
+        lines:int
+        words: int
+        bytes: int
+        chars: int
         lines, words, bytes, chars = word_count(file)
         return flask.render_template("word_count.html", lines=lines ,words=words, bytes=bytes, chars=chars)
 
 
-def word_count(file):
+def word_count(file)-> tuple[int, int, int, int]:
     """
     >>> file = pathlib.Path(__file__).absolute().parent / "test"  / "test.txt"
     >>> word_count(open(file, "rb"))
@@ -26,6 +30,7 @@ def word_count(file):
     words: int = 0
     bytes: int = -1
     chars: int = -1
+    line: str
     for line in file.read().decode("utf-8").split("\n"):
         lines += 1
         if len(line) > 0:
