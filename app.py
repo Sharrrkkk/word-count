@@ -1,8 +1,11 @@
 import flask
+import flask_cors
 import pathlib
 
 
 app: flask.Flask = flask.Flask(__name__)
+
+flask_cors.CORS(app)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -17,8 +20,11 @@ def index():
         bytes: int
         chars: int
         lines, words, bytes, chars = word_count(file)
-        return flask.render_template("word_count.html", lines=lines ,words=words, bytes=bytes, chars=chars)
-
+        if flask.request.headers.get("Origin") == "http://localhost:5000":
+            return flask.render_template("word_count.html", lines=lines ,words=words, bytes=bytes, chars=chars)
+        else:
+            return flask.jsonify({"lines":lines, "words":words, "bytes":bytes, "chars":chars})
+    
 
 def word_count(file)-> tuple[int, int, int, int]:
     """
