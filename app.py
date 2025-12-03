@@ -9,9 +9,9 @@ flask_cors.CORS(app)
 
 
 @app.route("/", methods=["GET", "POST"])
-def index():
+def home():
     if flask.request.method == "GET":
-        return flask.render_template("word_count_index.html")
+        return flask.render_template("word_count_home.html")
     
     elif flask.request.method == "POST":
         file = flask.request.files.get("file")
@@ -20,10 +20,31 @@ def index():
         bytes: int
         chars: int
         lines, words, bytes, chars = word_count(file)
-        if flask.request.headers.get("Origin") == "http://localhost:5000":
-            return flask.render_template("word_count.html", lines=lines ,words=words, bytes=bytes, chars=chars)
-        else:
-            return flask.jsonify({"lines":lines, "words":words, "bytes":bytes, "chars":chars})
+        return flask.render_template("word_count_home.html", lines=lines ,words=words, bytes=bytes, chars=chars)
+    
+
+@app.route("/embedded", methods=["POST"])
+def embedded():
+    if flask.request.method == "POST":
+        file = flask.request.files.get("file")
+        lines:int
+        words: int
+        bytes: int
+        chars: int
+        lines, words, bytes, chars = word_count(file)
+        return flask.render_template("word_count_embedded.html", lines=lines ,words=words, bytes=bytes, chars=chars)
+        
+
+@app.route("/api", methods=["POST"])
+def api():
+    if flask.request.method == "POST":
+        file = flask.request.files.get("file")
+        lines:int
+        words: int
+        bytes: int
+        chars: int
+        lines, words, bytes, chars = word_count(file)
+        return flask.jsonify({"lines":lines, "words":words, "bytes":bytes, "chars":chars})
     
 
 def word_count(file)-> tuple[int, int, int, int]:
