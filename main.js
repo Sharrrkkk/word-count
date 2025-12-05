@@ -10,7 +10,8 @@ document.getElementById("send").addEventListener("click", async () => {
     //http://localhost:5000/embedded
     const res = await fetch("http://localhost:5000/api", {
         method: "POST",
-        body: formData
+        body: formData,
+        cache: "no-store"
     });
 
     //embedded method
@@ -19,14 +20,11 @@ document.getElementById("send").addEventListener("click", async () => {
                 
     //JSON API method
     const data = await res.json();
-    const raw = localStorage.getItem("results");
-    localStorage.setItem("results", JSON.stringify(data));
-    if (raw) {
-        const data = JSON.parse(raw);
-        document.getElementById("lines").textContent = "Total Lines: " + data.lines;
-        document.getElementById("words").textContent = "Total Words: " + data.words;
-        document.getElementById("bytes").textContent = "Total Bytes: " + data.bytes;
-        document.getElementById("chars").textContent = "Total Chars: " + data.chars;
-    };
+    
+    document.getElementById("filename").textContent = "FileName: " + data.filename;
+    document.getElementById("lines").textContent = "Total Lines: " + data.lines;
+    document.getElementById("words").textContent = "Total Words: " + data.words;
+    document.getElementById("bytes").textContent = "Total Bytes: " + data.bytes;
+    document.getElementById("chars").textContent = "Total Chars: " + data.chars;
 
 });
