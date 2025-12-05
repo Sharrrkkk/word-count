@@ -6,9 +6,9 @@ document.getElementById("send").addEventListener("click", async () => {
     const formData = new FormData();
     formData.append("file", file);
 
-    //http://localhost:5000/api
-    //http://localhost:5000/embedded
-    const res = await fetch("http://localhost:5000/api", {
+    //https://sharrrkkk.pythonanywhere.com/api
+    //https://sharrrkkk.pythonanywhere.com/embedded
+    const res = await fetch("https://sharrrkkk.pythonanywhere.com/api", {
         method: "POST",
         body: formData,
         cache: "no-store"
