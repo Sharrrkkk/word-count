@@ -6,25 +6,52 @@ document.getElementById("send").addEventListener("click", async () => {
     const formData = new FormData();
     formData.append("file", file);
 
-    //https://sharrrkkk.pythonanywhere.com/api
-    //https://sharrrkkk.pythonanywhere.com/embedded
-    const res = await fetch("https://sharrrkkk.pythonanywhere.com/embedded", {
+    //production
+    //const api = "https://sharrrkkk.pythonanywhere.com/api";
+    //const embedded = "https://sharrrkkk.pythonanywhere.com/embedded";
+    //let url = "";
+
+    //development
+    const api = "http://localhost:5000/api";
+    const embedded = "http://localhost:5000/embedded";
+    let url = "";
+
+    const status = document.getElementById("status").value;
+    document.getElementById("mode").textContet = status;
+
+    if (status === "api") {
+        url = api;
+    } else {
+        url = embedded;
+    };
+
+    console.log(url);
+
+    const response = await fetch(url, {
         method: "POST",
         body: formData,
         cache: "no-store"
     });
 
-    //embedded method
-    const data = await res.text();
-    document.getElementById("container").innerHTML = data;
-                
-    //JSON API method
-    /*const data = await res.json();
-    
-    document.getElementById("filename").textContent = "FileName: " + data.filename;
-    document.getElementById("lines").textContent = "Total Lines: " + data.lines;
-    document.getElementById("words").textContent = "Total Words: " + data.words;
-    document.getElementById("bytes").textContent = "Total Bytes: " + data.bytes;
-    document.getElementById("chars").textContent = "Total Chars: " + data.chars;*/
+    if (status=== "api") {
+        //JSON API method
+        const data = await response.json();
+        document.getElementById("mode").textContent = data.mode;
+        document.getElementById("filename").textContent = data.filename;
+        document.getElementById("lines").textContent = data.lines;
+        document.getElementById("words").textContent = data.words;
+        document.getElementById("bytes").textContent = data.bytes;
+        document.getElementById("chars").textContent = data.chars;
+    } else {
+        //embedded method
+        const data = await response.text();
+        document.getElementById("container").innerHTML = data;
+    }
 
+});
+
+
+document.getElementById("status").addEventListener("change", function() {
+    const status = document.getElementById("status").value;
+    document.getElementById("mode").textContent = status.toUpperCase();
 });

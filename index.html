@@ -5,6 +5,7 @@
     <head>
         <meta charset="UTF-8">
         <title>Welcome</title>
+        <link rel="stylesheet" href="style.css">
     </head>
 
     <body>
@@ -13,14 +14,24 @@
         <input type="file" id="file" name="file">
         <br>
         <button id="send">Send</button>
+        <br>
+        <br>
+
+        <label for="status">MODE</label>
+        <br>
+        <select id="status" name="status">
+            <option value="api">API</option>
+            <option value="embedded">EMBEDDED</option>
+        </select>
 
         <div id="container">
         <h1>Results:</h1>
-        <h2 id="filename">FileName:</h2>
-        <h2 id="lines">Total Lines:</h2>
-        <h2 id="words">Total Words:</h2>
-        <h2 id="bytes">Total Bytes:</h2>
-        <h2 id="chars">Total Chars:</h2>
+        <h2>Mode: <mark><div id="mode">API</div></mark></h2>
+        <h2>FileName: <div id="filename"></div></h2>
+        <h2>Total Lines: <div id="lines"></div></h2>
+        <h2>Total Words: <div id="words"></div></h2>
+        <h2>Total Bytes: <div id="bytes"></div></h2>
+        <h2>Total Chars: <div id="chars"></div></h2>
         </div>
 
         <script src="main.js"></script>

@@ -13,7 +13,7 @@ The module depends on:
 - flask: Core web framework.
 - flask_cors: CORS support.
 - pathlib: Filesystem path utilities.
-- typing: Type annotations (BinaryIO, NamedTuple, etc.).
+- typing: Type annotations (ByteString, NamedTuple).
 
 All text-file processing is delegated to `word_count()`, which returns
 a `Data` NamedTuple with line, word, byte, and character counts.
@@ -21,7 +21,7 @@ a `Data` NamedTuple with line, word, byte, and character counts.
 import flask #request, render_template, Response
 import flask_cors # CORS
 import pathlib # PATH
-import typing # BinaryIO, BytesString, NamedTuple
+import typing # BytesString, NamedTuple
 from werkzeug.datastructures import FileStorage
 import sys # stderr
 
@@ -42,13 +42,14 @@ def home()-> flask.Response:
     rendered without counts.
 
     Args:
-    file (typing.BinaryIO | None):
+    file (FileStorage | None):
         Binary file-like object from request.files.get("file").
         None if no file was uploaded.
 
     Returns:
         flask.Response:
             HTML page rendered with the count statistics:
+            - mode (str): Rendering mode
             - filename (str): full file name
             - lines (int): Total number of lines.
             - words (int): Total number of words.
@@ -58,8 +59,8 @@ def home()-> flask.Response:
     Examples:
         >>> filename: pathlib.Path = pathlib.Path(__file__).absolute().parent / "test"  / "test.txt"
         >>> with open(filename, "rb") as file:
-        ...     word_count(file, 'test.txt')
-        Data(filename='test.txt', lines=1364, words=6288, bytes=41577, chars=41335)
+        ...     word_count(file, 'test.txt', 'SSR')
+        Data(mode='SSR', filename='test.txt', lines=1364, words=6288, bytes=41577, chars=41335)
     """
     if flask.request.method == "GET":
         return flask.Response(flask.render_template("word_count_home.html"))
@@ -67,20 +68,22 @@ def home()-> flask.Response:
     elif flask.request.method == "POST":
         file: FileStorage | None = flask.request.files.get("file")
         if file and file.filename and len(file.filename) >= 0:
-            data: Data = word_count(file, file.filename)
+            data: Data = word_count(file, file.filename, 'SSR')
+            mode: str = data.mode
             filename: str = data.filename
             lines: int = data.lines
             words: int = data.words
             bytes: int = data.bytes
             chars: int = data.chars
             return flask.Response(flask.render_template("word_count_home.html",
-            filename=filename, lines=lines ,words=words, bytes=bytes, chars=chars))
+            mode=mode, filename=filename, lines=lines ,words=words, bytes=bytes,
+            chars=chars))
         else:
             return flask.Response(flask.render_template("word_count_home.html",
-            filename='No file', lines=0 ,words=0, bytes=0, chars=0))
+            mode="SSR", filename='No file', lines=0 ,words=0, bytes=0, chars=0))
     else:
         return flask.Response(flask.render_template("word_count_home.html",
-            filename='No file', lines=0 ,words=0, bytes=0, chars=0))
+        mode='SSR', filename='No file', lines=0 ,words=0, bytes=0, chars=0))
     
 
 @app.route("/embedded", methods=["POST"])
@@ -94,13 +97,14 @@ def embedded()-> flask.Response:
     are used for all counts.
 
     Args:
-    file (typing.BinaryIO | None):
+    file (FileStorage | None):
         Binary file-like object from request.files.get("file").
         None if no file was uploaded.
 
     Returns:
     flask.Response:
         Rendered HTML page containing the count statistics:
+            - mode (str): Rendering mode
             - filename (str): full file name
             - lines (int): Total number of lines.
             - words (int): Total number of words.
@@ -110,27 +114,28 @@ def embedded()-> flask.Response:
     Examples:
         >>> filename: pathlib.Path = pathlib.Path(__file__).absolute().parent / "test"  / "test.txt"
         >>> with open(filename, "rb") as file:
-        ...     word_count(file, 'test.txt')
-        Data(filename='test.txt', lines=1364, words=6288, bytes=41577, chars=41335)
+        ...     word_count(file, 'test.txt', 'EMBEDDED')
+        Data(mode='EMBEDDED', filename='test.txt', lines=1364, words=6288, bytes=41577, chars=41335)
     """
     if flask.request.method == "POST":
         file: FileStorage | None = flask.request.files.get("file")
         if file and file.filename and len(file.filename) >= 0:
-            print(file.name, file=sys.stderr)
-            data: Data = word_count(file, file.filename)
+            data: Data = word_count(file, file.filename, 'EMBEDDED')
+            mode: str = data.mode
             filename: str = data.filename
             lines: int = data.lines
             words: int = data.words
             bytes: int = data.bytes
             chars: int = data.chars
             return flask.Response(flask.render_template("word_count_embedded.html",
-            filename=filename, lines=lines ,words=words, bytes=bytes, chars=chars))
+            mode=mode, filename=filename, lines=lines ,words=words, bytes=bytes,
+            chars=chars))
         else:
             return flask.Response(flask.render_template("word_count_embedded.html",
-                            filename='No file', lines=0 ,words=0, bytes=0, chars=0))   
+            mode='EMBEDDED', filename='No file', lines=0 ,words=0, bytes=0, chars=0))   
     else:
         return flask.Response(flask.render_template("word_count_embedded.html",
-                        filename='No file', lines=0 ,words=0, bytes=0, chars=0))
+        mode='EMBEDDED', filename='No file', lines=0 ,words=0, bytes=0, chars=0))
     
 
 @app.route("/api", methods=["POST"])
@@ -142,13 +147,14 @@ def api()-> flask.Response:
     If no file is provided, returns default counts with zeros.
 
     Args:
-    file (typing.BinaryIO | None):
+    file (FileStorage | None):
         Binary file-like object from request.files.get("file").
         None if no file was uploaded.
 
     Returns:
     flask.Response:
         HTTP JSON response containing:
+            - mode (str): Rendering mode
             - filename (str): full file name
             - lines: Total number of lines.
             - words: Total number of words.
@@ -158,18 +164,18 @@ def api()-> flask.Response:
     Examples:
         >>> filename: pathlib.Path = pathlib.Path(__file__).absolute().parent / "test"  / "test.txt"
         >>> with open(filename, "rb") as file:
-        ...     word_count(file, 'test.txt')
-        Data(filename='test.txt', lines=1364, words=6288, bytes=41577, chars=41335)
+        ...     word_count(file, 'test.txt', 'API')
+        Data(mode='API', filename='test.txt', lines=1364, words=6288, bytes=41577, chars=41335)
     """
     if flask.request.method == "POST":
         file: FileStorage | None = flask.request.files.get("file")
         if file and file.filename and len(file.filename) >= 0:
-            data: Data = word_count(file, file.filename)
+            data: Data = word_count(file, file.filename, 'API')
             return flask.jsonify(data._asdict())
         else:
-            return flask.jsonify(Data("'No file'", 0,0,0,0)._asdict())
+            return flask.jsonify(Data('API', 'No file', 0,0,0,0)._asdict())
     else:
-        return flask.jsonify(Data('No file', 0,0,0,0)._asdict())
+        return flask.jsonify(Data('API', 'No file', 0,0,0,0)._asdict())
     
 
 class Data(typing.NamedTuple):
@@ -185,6 +191,7 @@ class Data(typing.NamedTuple):
         bytes (int): Total number of raw bytes in the file.
         chars (int): Total number of UTF-8 decoded characters.
     """
+    mode: str
     filename: str
     lines: int
     words: int
@@ -192,7 +199,7 @@ class Data(typing.NamedTuple):
     chars: int
 
 
-def word_count(file: FileStorage, filename: str)-> Data:
+def word_count(file: FileStorage, filename: str, mode: str)-> Data:
     """
     Count lines, words, bytes, and characters in a UTF-8 text file.
 
@@ -201,10 +208,13 @@ def word_count(file: FileStorage, filename: str)-> Data:
     the number of raw bytes, and the number of characters.
 
     Args:
-        file (typing.BinaryIO): A binary file-like object opened in "rb" mode.
+        file (FileStorage): A binary file-like object opened in "rb" mode.
+        filename (str): 
+        mode (str): 
 
     Returns:
     Data (typing.NamedTuple): A NamedTuple with:
+        - mode (str)
         - filename (str)
         - lines (int)
         - words (int)
@@ -214,12 +224,12 @@ def word_count(file: FileStorage, filename: str)-> Data:
     Examples:
         >>> filename: pathlib.Path = pathlib.Path(__file__).absolute().parent / "test"  / "test.txt"
         >>> with open(filename, "rb") as file:
-        ...     word_count(file, 'test.txt')
-        Data(filename='test.txt', lines=1364, words=6288, bytes=41577, chars=41335)
+        ...     word_count(file, 'test.txt', 'SSR')
+        Data(mode='SSR', filename='test.txt', lines=1364, words=6288, bytes=41577, chars=41335)
         >>> filename: pathlib.Path = pathlib.Path(__file__).absolute().parent / "test" / "spencer.jpg"
         >>> with open(filename, "rb") as file:
-        ...     word_count(file, 'spencer.jpg')
-        Data(filename='spencer.jpg', lines=242, words=0, bytes=63496, chars=0)
+        ...     word_count(file, 'spencer.jpg', 'SSR')
+        Data(mode='SSR', filename='spencer.jpg', lines=242, words=0, bytes=63496, chars=0)
     """
     lines: int = -1
     words: int = 0
@@ -239,7 +249,7 @@ def word_count(file: FileStorage, filename: str)-> Data:
         words = 0
         chars = 0
 
-    return Data(filename, lines, words, bytes, chars)
+    return Data(mode, filename, lines, words, bytes, chars)
 
 
 def check_file_encoding(file: FileStorage)-> bool:
