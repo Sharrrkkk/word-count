@@ -6,26 +6,28 @@ document.getElementById("send").addEventListener("click", async () => {
     const formData = new FormData();
     formData.append("file", file);
 
-    //production
-    //const api = "https://sharrrkkk.pythonanywhere.com/api";
-    //const embedded = "https://sharrrkkk.pythonanywhere.com/embedded";
-    //let url = "";
+    let api = "";
+    let embedded = "";
 
-    //development
-    const api = "http://localhost:5000/api";
-    const embedded = "http://localhost:5000/embedded";
-    let url = "";
-
+    if (window.location.hostname === 'localhost') {
+        //development
+        api = "http://localhost:5000/api";
+        embedded = "http://localhost:5000/embedded";
+    } else {
+        //production
+        api = "https://sharrrkkk.pythonanywhere.com/api";
+        embedded = "https://sharrrkkk.pythonanywhere.com/embedded";
+    };
+    
     const status = document.getElementById("status").value;
-    document.getElementById("mode").textContet = status;
+
+    let url = "";
 
     if (status === "api") {
         url = api;
     } else {
         url = embedded;
     };
-
-    console.log(url);
 
     const response = await fetch(url, {
         method: "POST",
@@ -46,12 +48,12 @@ document.getElementById("send").addEventListener("click", async () => {
         //embedded method
         const data = await response.text();
         document.getElementById("container").innerHTML = data;
-    }
+    };
 
 });
 
 
-document.getElementById("status").addEventListener("change", function() {
+document.getElementById("status").addEventListener("change", () => {
     const status = document.getElementById("status").value;
     document.getElementById("mode").textContent = status.toUpperCase();
 });
