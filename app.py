@@ -19,7 +19,7 @@ All text-file processing is delegated to `word_count()`, which returns
 a `Data` NamedTuple with line, word, byte, and character counts.
 """
 import flask #request, render_template, Response
-import flask_cors # CORS
+import flask_cors # CORS, cross_origin
 import pathlib # PATH
 import typing # BytesString, NamedTuple
 from werkzeug.datastructures import FileStorage
@@ -27,7 +27,6 @@ import sys # stderr
 
 
 app: flask.Flask = flask.Flask(__name__)
-flask_cors.CORS(app)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -87,6 +86,7 @@ def home()-> flask.Response:
     
 
 @app.route("/embedded", methods=["POST"])
+@flask_cors.cross_origin(origins=["https://sharrrkkk.github.io/word-count/"], supports_credentials=False)
 def embedded()-> flask.Response:
     """
     Process an uploaded text file and return line, word, byte, and character counts.
@@ -139,6 +139,7 @@ def embedded()-> flask.Response:
     
 
 @app.route("/api", methods=["POST"])
+@flask_cors.cross_origin(origins=["https://sharrrkkk.github.io/word-count/"], supports_credentials=False)
 def api()-> flask.Response:
     """
     Process an uploaded text file and return line, word, byte, and character counts.
