@@ -1,4 +1,4 @@
-from .blueprints.ssr.ssr import home_bp
+from .blueprints.home.home import home_bp
 from .blueprints.api.api import api_bp
 from .blueprints.embedded.embedded import embedded_bp
 

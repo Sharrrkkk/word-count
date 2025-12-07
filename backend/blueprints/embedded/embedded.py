@@ -13,7 +13,7 @@ embedded_bp: flask.Blueprint = flask.Blueprint("embedded_bp", __name__, template
 
 
 @embedded_bp.route("/embedded", methods=["POST"])
-@flask_cors.cross_origin(origins=["https://sharrrkkk.github.io/word-count/"], supports_credentials=False)
+@flask_cors.cross_origin(origins=["https://sharrrkkk.github.io/word-count/", "http://localhost:8080"], supports_credentials=False)
 def embedded()-> flask.Response:
     """
     Process an uploaded text file and return line, word, byte, and character counts.

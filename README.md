@@ -12,3 +12,48 @@ This project is licensed under the MIT License.
 
 ## **Notes**
 This project is intended 100% for educational purposes.
+
+
+## **Project Structure**
+```
+.
+├── LICENSE
+├── README.md
+├── app.py
+├── backend
+│   ├── __init__.py
+│   ├── blueprints
+│   │   ├── __init__.py
+│   │   ├── api
+│   │   │   ├── __init__.py
+│   │   │   ├── api.py
+│   │   │   └── test
+│   │   │       └── test.txt
+│   │   ├── embedded
+│   │   │   ├── __init__.py
+│   │   │   ├── embedded.py
+│   │   │   ├── templates
+│   │   │   │   └── word_count_embedded.html
+│   │   │   └── test
+│   │   │       └── test.txt
+│   │   └── ssr
+│   │       ├── __init__.py
+│   │       ├── ssr.py
+│   │       ├── templates
+│   │       │   └── word_count_home.html
+│   │       └── test
+│   │           └── test.txt
+│   └── word_count
+│       ├── __init__.py
+│       ├── test
+│       │   ├── spencer.jpg
+│       │   └── test.txt
+│       └── wc.py
+├── index.html
+├── requirements.txt
+├── scripts
+│   └── main.js
+├── styles
+│   └── style.css
+└── test.py
+```

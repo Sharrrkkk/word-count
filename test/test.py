@@ -4,7 +4,7 @@ import pytest
 __all__: list[str] = []
 
 
-def _test()-> None:
+def _test_doctest()-> None:
     """
     Run all doctests in the current module.
 
@@ -22,4 +22,4 @@ def _test()-> None:
 
 
 if __name__ == "__main__":
-    _test()
+    _test_doctest()

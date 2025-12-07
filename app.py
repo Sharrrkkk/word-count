@@ -24,9 +24,9 @@ from backend import home_bp, api_bp, embedded_bp
 
 app: flask.Flask = flask.Flask(__name__)
 
-app.register_blueprint(home_bp, url_prefix = "/home")
-app.register_blueprint(api_bp, url_prefix = "/api")
-app.register_blueprint(embedded_bp, url_prefix = "/embedded")
+app.register_blueprint(home_bp)
+app.register_blueprint(api_bp)
+app.register_blueprint(embedded_bp)
 
 
 if __name__ == "__main__":

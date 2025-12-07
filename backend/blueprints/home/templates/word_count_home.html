@@ -9,7 +9,7 @@
     </head>
 
     <body>
-        <form action="./home" method="POST" enctype="multipart/form-data">
+        <form action="{{url_for('home_bp.home')}}" method="POST" enctype="multipart/form-data">
             <label for="file">File</label>
             <br>
             <input type="file" id="file" name="file" placeholder="file">
@@ -18,7 +18,7 @@
         </form>
 
         <h1>Results:</h1>
-        <h2>Mode: <mark>SSR</mark></h2>
+        <h2>Mode: <mark>{{mode}}</mark></h2>
         <h2>FileName: {{filename}}</h2>
         <h2>Total Lines: {{lines}}</h2>
         <h2>Total Words: {{words}}</h2>

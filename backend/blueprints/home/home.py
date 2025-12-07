@@ -11,7 +11,7 @@ __all__: list[str] = ["home_bp"]
 home_bp: flask.Blueprint = flask.Blueprint("home_bp", __name__, template_folder="templates") 
 
 
-@home_bp.route("/home", methods=["GET", "POST"])
+@home_bp.route("/", methods=["GET", "POST"])
 def home()-> flask.Response:
     """
     Render home page and handle file upload for counting.
@@ -40,20 +40,20 @@ def home()-> flask.Response:
     Examples:
         >>> filename: pathlib.Path = pathlib.Path(__file__).absolute().parent / "test"  / "test.txt"
         >>> with open(filename, "rb") as file:
-        ...     word_count(file, 'test.txt', 'SSR')
-        Data(mode='SSR', filename='test.txt', lines=1364, words=6288, bytes=41577, chars=41335)
+        ...     word_count(file, 'test.txt', 'HOME')
+        Data(mode='HOME', filename='test.txt', lines=1364, words=6288, bytes=41577, chars=41335)
     """
     if flask.request.method == "GET":
-        return flask.Response(flask.render_template("word_count_home.html"))
+        return flask.Response(flask.render_template("word_count_home.html", mode='HOME'))
     
     elif flask.request.method == "POST":
         file: FileStorage | None = flask.request.files.get("file")
         if file and file.filename and len(file.filename) >= 0:
-            data: Data = word_count(file, file.filename, 'API')
+            data: Data = word_count(file, file.filename, 'HOME')
             result: dict[str, typing.Any] = data._asdict()
             return flask.Response(flask.render_template("word_count_home.html", **result))
  
-    data: Data = word_count_empty('API')
+    data: Data = word_count_empty('HOME')
     result: dict[str, typing.Any] = data._asdict()
     return flask.Response(flask.render_template("word_count_home.html", **result))
 

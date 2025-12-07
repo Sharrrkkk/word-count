@@ -9,11 +9,11 @@ from ...word_count.wc import Data, word_count, word_count_empty
 __all__: list[str] = ["api_bp"]
 
 
-api_bp: flask.Blueprint = flask.Blueprint("api_bp", __name__, template_folder="templates") 
+api_bp: flask.Blueprint = flask.Blueprint("api_bp", __name__) 
 
 
 @api_bp.route("/api", methods=["POST"])
-@flask_cors.cross_origin(origins=["https://sharrrkkk.github.io/word-count/"], supports_credentials=False)
+@flask_cors.cross_origin(origins=["https://sharrrkkk.github.io/word-count/", "http://localhost:8080"], supports_credentials=False)
 def api()-> flask.Response:
     """
     Process an uploaded text file and return line, word, byte, and character counts.
