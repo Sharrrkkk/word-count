@@ -1,0 +1,1365 @@
+Data Structures
+Werkzeug provides some subclasses of common Python objects to extend them with additional features. Some of them are used to make them immutable, others are used to change some semantics to better work with HTTP.
+
+General Purpose
+Changelog
+Changed in version 0.6: The general purpose classes are now pickleable in each protocol as long as the contained objects are pickleable. This means that the FileMultiDict won’t be pickleable as soon as it contains a file.
+
+class werkzeug.datastructures.TypeConversionDict
+Works like a regular dict but the get() method can perform type conversions. MultiDict and CombinedMultiDict are subclasses of this class and provide the same feature.
+
+Changelog
+get(key: K) → V | None
+get(key: K, default: V) → V
+get(key: K, default: T) → V | T
+get(key: str, type: Callable[[V], T]) → T | None
+get(key: str, default: T, type: Callable[[V], T]) → T
+Return the default value if the requested data doesn’t exist. If type is provided and is a callable it should convert the value, return it or raise a ValueError if that is not possible. In this case the function will return the default as if the value was not found:
+
+d = TypeConversionDict(foo='42', bar='blub')
+d.get('foo', type=int)
+42
+d.get('bar', -1, type=int)
+-1
+Parameters:
+key – The key to be looked up.
+
+default – The default value to be returned if the key can’t be looked up. If not further specified None is returned.
+
+type – A callable that is used to cast the value in the MultiDict. If a ValueError or a TypeError is raised by this callable the default value is returned.
+
+Changelog
+class werkzeug.datastructures.ImmutableTypeConversionDict
+Works like a TypeConversionDict but does not support modifications.
+
+Changelog
+copy()
+Return a shallow mutable copy of this object. Keep in mind that the standard library’s copy() function is a no-op for this class like for any other python immutable type (eg: tuple).
+
+Return type:
+TypeConversionDict[K, V]
+
+class werkzeug.datastructures.MultiDict(mapping=None)
+A MultiDict is a dictionary subclass customized to deal with multiple values for the same key which is for example used by the parsing functions in the wrappers. This is necessary because some HTML form elements pass multiple values for the same key.
+
+MultiDict implements all standard dictionary methods. Internally, it saves all values for a key as a list, but the standard dict access methods will only return the first value for a key. If you want to gain access to the other values, too, you have to use the list methods as explained below.
+
+Basic Usage:
+
+d = MultiDict([('a', 'b'), ('a', 'c')])
+d
+MultiDict([('a', 'b'), ('a', 'c')])
+d['a']
+'b'
+d.getlist('a')
+['b', 'c']
+'a' in d
+True
+It behaves like a normal dict thus all dict functions will only return the first value when multiple values for one key are found.
+
+From Werkzeug 0.3 onwards, the KeyError raised by this class is also a subclass of the BadRequest HTTP exception and will render a page for a 400 BAD REQUEST if caught in a catch-all for HTTP exceptions.
+
+A MultiDict can be constructed from an iterable of (key, value) tuples, a dict, a MultiDict or from Werkzeug 0.2 onwards some keyword parameters.
+
+Parameters:
+mapping (MultiDict[K, V] | cabc.Mapping[K, V | list[V] | tuple[V, ...] | set[V]] | cabc.Iterable[tuple[K, V]] | None) – the initial value for the MultiDict. Either a regular dict, an iterable of (key, value) tuples or None.
+
+Changed in version 3.1: Implement | and |= operators.
+
+add(key, value)
+Adds a new value for the key.
+
+Changelog
+Parameters:
+key (K) – the key for the value.
+
+value (V) – the value to add.
+
+Return type:
+None
+
+getlist(key: K) → list[V]
+getlist(key: K, type: Callable[[V], T]) → list[T]
+Return the list of items for a given key. If that key is not in the MultiDict, the return value will be an empty list. Just like get, getlist accepts a type parameter. All items will be converted with the callable defined there.
+
+Parameters:
+key – The key to be looked up.
+
+type – Callable to convert each value. If a ValueError or TypeError is raised, the value is omitted.
+
+Returns:
+a list of all the values for the key.
+
+Changed in version 3.1: Catches TypeError in addition to ValueError.
+
+setlist(key, new_list)
+Remove the old values for a key and add new ones. Note that the list you pass the values in will be shallow-copied before it is inserted in the dictionary.
+
+d = MultiDict()
+d.setlist('foo', ['1', '2'])
+d['foo']
+'1'
+d.getlist('foo')
+['1', '2']
+Parameters:
+key (K) – The key for which the values are set.
+
+new_list (Iterable[V]) – An iterable with the new values for the key. Old values are removed first.
+
+Return type:
+None
+
+setdefault(key: K) → None
+setdefault(key: K, default: V) → V
+Returns the value for the key if it is in the dict, otherwise it returns default and sets that value for key.
+
+Parameters:
+key – The key to be looked up.
+
+default – The default value to be returned if the key is not in the dict. If not further specified it’s None.
+
+setlistdefault(key, default_list=None)
+Like setdefault but sets multiple values. The list returned is not a copy, but the list that is actually used internally. This means that you can put new values into the dict by appending items to the list:
+
+d = MultiDict({"foo": 1})
+d.setlistdefault("foo").extend([2, 3])
+d.getlist("foo")
+[1, 2, 3]
+Parameters:
+key (K) – The key to be looked up.
+
+default_list (Iterable[V] | None) – An iterable of default values. It is either copied (in case it was a list) or converted into a list before returned.
+
+Returns:
+a list
+
+Return type:
+list[V]
+
+items(multi=False)
+Return an iterator of (key, value) pairs.
+
+Parameters:
+multi (bool) – If set to True the iterator returned will have a pair for each value of each key. Otherwise it will only contain pairs for the first value of each key.
+
+Return type:
+Iterable[tuple[K, V]]
+
+lists()
+Return a iterator of (key, values) pairs, where values is the list of all values associated with the key.
+
+Return type:
+Iterable[tuple[K, list[V]]]
+
+values()
+Returns an iterator of the first value on every key’s value list.
+
+Return type:
+Iterable[V]
+
+listvalues()
+Return an iterator of all values associated with a key. Zipping keys() and this is the same as calling lists():
+
+d = MultiDict({"foo": [1, 2, 3]})
+zip(d.keys(), d.listvalues()) == d.lists()
+True
+Return type:
+Iterable[list[V]]
+
+copy()
+Return a shallow copy of this object.
+
+Return type:
+te.Self
+
+deepcopy(memo=None)
+Return a deep copy of this object.
+
+Parameters:
+memo (t.Any)
+
+Return type:
+te.Self
+
+to_dict() → dict[K, V]
+to_dict(flat: Literal[False]) → dict[K, list[V]]
+Return the contents as regular dict. If flat is True the returned dict will only have the first item present, if flat is False all values will be returned as lists.
+
+Parameters:
+flat – If set to False the dict returned will have lists with all the values in it. Otherwise it will only contain the first value for each key.
+
+Returns:
+a dict
+
+update(mapping)
+update() extends rather than replaces existing key lists:
+
+a = MultiDict({'x': 1})
+b = MultiDict({'x': 2, 'y': 3})
+a.update(b)
+a
+MultiDict([('y', 3), ('x', 1), ('x', 2)])
+If the value list for a key in other_dict is empty, no new values will be added to the dict and the key will not be created:
+
+x = {'empty_list': []}
+y = MultiDict()
+y.update(x)
+y
+MultiDict([])
+Parameters:
+mapping (MultiDict[K, V] | Mapping[K, V | list[V] | tuple[V, ...] | set[V]] | Iterable[tuple[K, V]])
+
+Return type:
+None
+
+pop(key: K) → V
+pop(key: K, default: V) → V
+pop(key: K, default: T) → V | T
+Pop the first item for a list on the dict. Afterwards the key is removed from the dict, so additional values are discarded:
+
+d = MultiDict({"foo": [1, 2, 3]})
+d.pop("foo")
+1
+"foo" in d
+False
+Parameters:
+key – the key to pop.
+
+default – if provided the value to return if the key was not in the dictionary.
+
+popitem()
+Pop an item from the dict.
+
+Return type:
+tuple[K, V]
+
+poplist(key)
+Pop the list for a key from the dict. If the key is not in the dict an empty list is returned.
+
+Changelog
+Parameters:
+key (K)
+
+Return type:
+list[V]
+
+popitemlist()
+Pop a (key, list) tuple from the dict.
+
+Return type:
+tuple[K, list[V]]
+
+clear()
+Remove all items from the dict.
+
+classmethod fromkeys(iterable, value=None, /)
+Create a new dictionary with keys from iterable and values set to value.
+
+get(key, default=None, type=None)
+Return the default value if the requested data doesn’t exist. If type is provided and is a callable it should convert the value, return it or raise a ValueError if that is not possible. In this case the function will return the default as if the value was not found:
+
+d = TypeConversionDict(foo='42', bar='blub')
+d.get('foo', type=int)
+42
+d.get('bar', -1, type=int)
+-1
+Parameters:
+key (K) – The key to be looked up.
+
+default (V | T | None) – The default value to be returned if the key can’t be looked up. If not further specified None is returned.
+
+type (Callable[[V], T] | None) – A callable that is used to cast the value in the MultiDict. If a ValueError or a TypeError is raised by this callable the default value is returned.
+
+Return type:
+V | T | None
+
+Changelog
+keys()
+Return a set-like object providing a view on the dict’s keys.
+
+class werkzeug.datastructures.OrderedMultiDict
+Works like a regular MultiDict but preserves the order of the fields. To convert the ordered multi dict into a list you can use the items() method and pass it multi=True.
+
+In general an OrderedMultiDict is an order of magnitude slower than a MultiDict.
+
+note
+Due to a limitation in Python you cannot convert an ordered multi dict into a regular dict by using dict(multidict). Instead you have to use the to_dict() method, otherwise the internal bucket objects are exposed.
+
+Deprecated since version 3.1: Will be removed in Werkzeug 3.2. Use MultiDict instead.
+
+class werkzeug.datastructures.ImmutableMultiDict
+An immutable OrderedMultiDict.
+
+Deprecated since version 3.1: Will be removed in Werkzeug 3.2. Use ImmutableMultiDict instead.
+
+Changelog
+werkzeug.datastructures.ImmutableOrderedMultiDict
+alias of _ImmutableOrderedMultiDict
+
+class werkzeug.datastructures.CombinedMultiDict(dicts=None)
+A read only MultiDict that you can pass multiple MultiDict instances as sequence and it will combine the return values of all wrapped dicts:
+
+from werkzeug.datastructures import CombinedMultiDict, MultiDict
+post = MultiDict([('foo', 'bar')])
+get = MultiDict([('blub', 'blah')])
+combined = CombinedMultiDict([get, post])
+combined['foo']
+'bar'
+combined['blub']
+'blah'
+This works for all read operations and will raise a TypeError for methods that usually change data which isn’t possible.
+
+From Werkzeug 0.3 onwards, the KeyError raised by this class is also a subclass of the BadRequest HTTP exception and will render a page for a 400 BAD REQUEST if caught in a catch-all for HTTP exceptions.
+
+Parameters:
+dicts (cabc.Iterable[MultiDict[K, V]] | None)
+
+class werkzeug.datastructures.ImmutableDict
+An immutable dict.
+
+Changelog
+copy()
+Return a shallow mutable copy of this object. Keep in mind that the standard library’s copy() function is a no-op for this class like for any other python immutable type (eg: tuple).
+
+Return type:
+dict[K, V]
+
+class werkzeug.datastructures.ImmutableList(iterable=(), /)
+An immutable list.
+
+Changelog
+Private:
+class werkzeug.datastructures.FileMultiDict(mapping=None)
+A special MultiDict that has convenience methods to add files to it. This is used for EnvironBuilder and generally useful for unittesting.
+
+Changelog
+Parameters:
+mapping (MultiDict[K, V] | cabc.Mapping[K, V | list[V] | tuple[V, ...] | set[V]] | cabc.Iterable[tuple[K, V]] | None)
+
+add_file(name, file, filename=None, content_type=None)
+Adds a new file to the dict. file can be a file name or a file-like or a FileStorage object.
+
+Parameters:
+name (str) – the name of the field.
+
+file (str | PathLike[str] | IO[bytes] | FileStorage) – a filename or file-like object
+
+filename (str | None) – an optional filename
+
+content_type (str | None) – an optional content type
+
+Return type:
+None
+
+HTTP Related
+class werkzeug.datastructures.Headers([defaults])
+An object that stores some headers. It has a dict-like interface, but is ordered, can store the same key multiple times, and iterating yields (key, value) pairs instead of only keys.
+
+This data structure is useful if you want a nicer way to handle WSGI headers which are stored as tuples in a list.
+
+From Werkzeug 0.3 onwards, the KeyError raised by this class is also a subclass of the BadRequest HTTP exception and will render a page for a 400 BAD REQUEST if caught in a catch-all for HTTP exceptions.
+
+Headers is mostly compatible with the Python wsgiref.headers.Headers class, with the exception of __getitem__. wsgiref will return None for headers['missing'], whereas Headers will raise a KeyError.
+
+To create a new Headers object, pass it a list, dict, or other Headers object with default values. These values are validated the same way values added later are.
+
+Parameters:
+defaults (Headers | MultiDict[str, t.Any] | cabc.Mapping[str, t.Any | list[t.Any] | tuple[t.Any, ...] | set[t.Any]] | cabc.Iterable[tuple[str, t.Any]] | None) – The list of default values for the Headers.
+
+Changed in version 3.1: Implement | and |= operators.
+
+Changelog
+get(key: str) → str | None
+get(key: str, default: str) → str
+get(key: str, default: T) → str | T
+get(key: str, type: Callable[[str], T]) → T | None
+get(key: str, default: T, type: Callable[[str], T]) → T
+Return the default value if the requested data doesn’t exist. If type is provided and is a callable it should convert the value, return it or raise a ValueError if that is not possible. In this case the function will return the default as if the value was not found:
+
+d = Headers([('Content-Length', '42')])
+d.get('Content-Length', type=int)
+42
+Parameters:
+key – The key to be looked up.
+
+default – The default value to be returned if the key can’t be looked up. If not further specified None is returned.
+
+type – A callable that is used to cast the value in the Headers. If a ValueError is raised by this callable the default value is returned.
+
+Changelog
+getlist(key: str) → list[str]
+getlist(key: str, type: Callable[[str], T]) → list[T]
+Return the list of items for a given key. If that key is not in the Headers, the return value will be an empty list. Just like get(), getlist() accepts a type parameter. All items will be converted with the callable defined there.
+
+Parameters:
+key – The key to be looked up.
+
+type – A callable that is used to cast the value in the Headers. If a ValueError is raised by this callable the value will be removed from the list.
+
+Returns:
+a list of all the values for the key.
+
+Changelog
+get_all(name)
+Return a list of all the values for the named field.
+
+This method is compatible with the wsgiref get_all() method.
+
+Parameters:
+name (str)
+
+Return type:
+list[str]
+
+extend(arg=None, /, **kwargs)
+Extend headers in this object with items from another object containing header items as well as keyword arguments.
+
+To replace existing keys instead of extending, use update() instead.
+
+If provided, the first argument can be another Headers object, a MultiDict, dict, or iterable of pairs.
+
+Changelog
+Parameters:
+arg (Headers | MultiDict[str, Any] | Mapping[str, Any | list[Any] | tuple[Any, ...] | set[Any]] | Iterable[tuple[str, Any]] | None)
+
+kwargs (str)
+
+Return type:
+None
+
+remove(key)
+Remove a key.
+
+Parameters:
+key (str) – The key to be removed.
+
+Return type:
+None
+
+pop() → tuple[str, str]
+pop(key: str) → str
+pop(key: int | None = None) → tuple[str, str]
+pop(key: str, default: str) → str
+pop(key: str, default: T) → str | T
+Removes and returns a key or index.
+
+Parameters:
+key – The key to be popped. If this is an integer the item at that position is removed, if it’s a string the value for that key is. If the key is omitted or None the last item is removed.
+
+Returns:
+an item.
+
+popitem()
+Removes a key or index and returns a (key, value) item.
+
+Return type:
+tuple[str, str]
+
+add(key, value, /, **kwargs)
+Add a new header tuple to the list.
+
+Keyword arguments can specify additional parameters for the header value, with underscores converted to dashes:
+
+d = Headers()
+d.add('Content-Type', 'text/plain')
+d.add('Content-Disposition', 'attachment', filename='foo.png')
+The keyword argument dumping uses dump_options_header() behind the scenes.
+
+Changelog
+Parameters:
+key (str)
+
+value (Any)
+
+kwargs (Any)
+
+Return type:
+None
+
+add_header(key, value, /, **kwargs)
+Add a new header tuple to the list.
+
+An alias for add() for compatibility with the wsgiref add_header() method.
+
+Parameters:
+key (str)
+
+value (Any)
+
+kwargs (Any)
+
+Return type:
+None
+
+clear()
+Clears all headers.
+
+Return type:
+None
+
+set(key, value, /, **kwargs)
+Remove all header tuples for key and add a new one. The newly added key either appears at the end of the list if there was no entry or replaces the first one.
+
+Keyword arguments can specify additional parameters for the header value, with underscores converted to dashes. See add() for more information.
+
+Changelog
+Parameters:
+key (str) – The key to be inserted.
+
+value (Any) – The value to be inserted.
+
+kwargs (Any)
+
+Return type:
+None
+
+setlist(key, values)
+Remove any existing values for a header and add new ones.
+
+Parameters:
+key (str) – The header key to set.
+
+values (Iterable[Any]) – An iterable of values to set for the key.
+
+Return type:
+None
+
+Changelog
+setdefault(key, default)
+Return the first value for the key if it is in the headers, otherwise set the header to the value given by default and return that.
+
+Parameters:
+key (str) – The header key to get.
+
+default (Any) – The value to set for the key if it is not in the headers.
+
+Return type:
+str
+
+setlistdefault(key, default)
+Return the list of values for the key if it is in the headers, otherwise set the header to the list of values given by default and return that.
+
+Unlike MultiDict.setlistdefault(), modifying the returned list will not affect the headers.
+
+Parameters:
+key (str) – The header key to get.
+
+default (Iterable[Any]) – An iterable of values to set for the key if it is not in the headers.
+
+Return type:
+list[str]
+
+Changelog
+update(arg=None, /, **kwargs)
+Replace headers in this object with items from another headers object and keyword arguments.
+
+To extend existing keys instead of replacing, use extend() instead.
+
+If provided, the first argument can be another Headers object, a MultiDict, dict, or iterable of pairs.
+
+Changelog
+Parameters:
+arg (Headers | MultiDict[str, Any] | Mapping[str, Any | list[Any] | tuple[Any, ...] | Set[Any]] | Iterable[tuple[str, Any]] | None)
+
+kwargs (Any | list[Any] | tuple[Any, ...] | Set[Any])
+
+Return type:
+None
+
+to_wsgi_list()
+Convert the headers into a list suitable for WSGI.
+
+Returns:
+list
+
+Return type:
+list[tuple[str, str]]
+
+class werkzeug.datastructures.EnvironHeaders(environ)
+Read only version of the headers from a WSGI environment. This provides the same interface as Headers and is constructed from a WSGI environment. From Werkzeug 0.3 onwards, the KeyError raised by this class is also a subclass of the BadRequest HTTP exception and will render a page for a 400 BAD REQUEST if caught in a catch-all for HTTP exceptions.
+
+Parameters:
+environ (WSGIEnvironment)
+
+class werkzeug.datastructures.HeaderSet(headers=None, on_update=None)
+Similar to the ETags class this implements a set-like structure. Unlike ETags this is case insensitive and used for vary, allow, and content-language headers.
+
+If not constructed using the parse_set_header() function the instantiation works like this:
+
+hs = HeaderSet(['foo', 'bar', 'baz'])
+hs
+HeaderSet(['foo', 'bar', 'baz'])
+Parameters:
+headers (cabc.Iterable[str] | None)
+
+on_update (cabc.Callable[[te.Self], None] | None)
+
+add(header)
+Add a new header to the set.
+
+Parameters:
+header (str)
+
+Return type:
+None
+
+remove(header)
+Remove a header from the set. This raises an KeyError if the header is not in the set.
+
+Changelog
+Parameters:
+header (str) – the header to be removed.
+
+self (te.Self)
+
+Return type:
+None
+
+update(iterable)
+Add all the headers from the iterable to the set.
+
+Parameters:
+iterable (cabc.Iterable[str]) – updates the set with the items from the iterable.
+
+self (te.Self)
+
+Return type:
+None
+
+discard(header)
+Like remove() but ignores errors.
+
+Parameters:
+header (str) – the header to be discarded.
+
+Return type:
+None
+
+find(header)
+Return the index of the header in the set or return -1 if not found.
+
+Parameters:
+header (str) – the header to be looked up.
+
+Return type:
+int
+
+index(header)
+Return the index of the header in the set or raise an IndexError.
+
+Parameters:
+header (str) – the header to be looked up.
+
+Return type:
+int
+
+clear()
+Clear the set.
+
+Parameters:
+self (te.Self)
+
+Return type:
+None
+
+as_set(preserve_casing=False)
+Return the set as real python set type. When calling this, all the items are converted to lowercase and the ordering is lost.
+
+Parameters:
+preserve_casing (bool) – if set to True the items in the set returned will have the original case like in the HeaderSet, otherwise they will be lowercase.
+
+Return type:
+set[str]
+
+to_header()
+Convert the header set into an HTTP header string.
+
+Return type:
+str
+
+class werkzeug.datastructures.Accept(values=())
+An Accept object is just a list subclass for lists of (value, quality) tuples. It is automatically sorted by specificity and quality.
+
+All Accept objects work similar to a list but provide extra functionality for working with the data. Containment checks are normalized to the rules of that header:
+
+a = CharsetAccept([('ISO-8859-1', 1), ('utf-8', 0.7)])
+a.best
+'ISO-8859-1'
+'iso-8859-1' in a
+True
+'UTF8' in a
+True
+'utf7' in a
+False
+To get the quality for an item you can use normal item lookup:
+
+print a['utf-8']
+0.7
+a['utf7']
+0
+Changelog
+Parameters:
+values (Accept | cabc.Iterable[tuple[str, float]] | None)
+
+quality(key)
+Returns the quality of the key.
+
+Changelog
+Parameters:
+key (str)
+
+Return type:
+float
+
+index(key)
+Get the position of an entry or raise ValueError.
+
+Parameters:
+key (str | tuple[str, float]) – The key to be looked up.
+
+Return type:
+int
+
+Changelog
+find(key)
+Get the position of an entry or return -1.
+
+Parameters:
+key (str | tuple[str, float]) – The key to be looked up.
+
+Return type:
+int
+
+values()
+Iterate over all values.
+
+Return type:
+Iterator[str]
+
+to_header()
+Convert the header set into an HTTP header string.
+
+Return type:
+str
+
+best_match(matches: Iterable[str]) → str | None
+best_match(matches: Iterable[str], default: str = None) → str
+Returns the best match from a list of possible matches based on the specificity and quality of the client. If two items have the same quality and specificity, the one is returned that comes first.
+
+Parameters:
+matches – a list of matches to check for
+
+default – the value that is returned if none match
+
+property best: str | None
+The best match as value.
+
+class werkzeug.datastructures.MIMEAccept(values=())
+Like Accept but with special methods and behavior for mimetypes.
+
+Parameters:
+values (Accept | cabc.Iterable[tuple[str, float]] | None)
+
+property accept_html: bool
+True if this object accepts HTML.
+
+property accept_xhtml: bool
+True if this object accepts XHTML.
+
+property accept_json: bool
+True if this object accepts JSON.
+
+class werkzeug.datastructures.CharsetAccept(values=())
+Like Accept but with normalization for charsets.
+
+Parameters:
+values (Accept | cabc.Iterable[tuple[str, float]] | None)
+
+class werkzeug.datastructures.LanguageAccept(values=())
+Like Accept but with normalization for language tags.
+
+Parameters:
+values (Accept | cabc.Iterable[tuple[str, float]] | None)
+
+class werkzeug.datastructures.RequestCacheControl(values=(), on_update=None)
+A cache control for requests. This is immutable and gives access to all the request-relevant cache control headers.
+
+To get a header of the RequestCacheControl object again you can convert the object into a string or call the to_header() method. If you plan to subclass it and add your own items have a look at the sourcecode for that class.
+
+Changed in version 3.1: Dict values are always str | None. Setting properties will convert the value to a string. Setting a non-bool property to False is equivalent to setting it to None. Getting typed properties will return None if conversion raises ValueError, rather than the string.
+
+Changed in version 3.1: max_age is None if present without a value, rather than -1.
+
+Changed in version 3.1: no_cache is a boolean, it is True instead of "*" when present.
+
+Changed in version 3.1: max_stale is True if present without a value, rather than "*".
+
+Changed in version 3.1: no_transform is a boolean. Previously it was mistakenly always None.
+
+Changed in version 3.1: min_fresh is None if present without a value, rather than "*".
+
+Changelog
+Parameters:
+values (cabc.Mapping[str, t.Any] | cabc.Iterable[tuple[str, t.Any]] | None)
+
+on_update (cabc.Callable[[_CacheControl], None] | None)
+
+static cache_property(key, empty, type, *, doc=None)
+Return a new property object for a cache header. Useful if you want to add support for a cache extension in a subclass.
+
+Parameters:
+key (str) – The attribute name present in the parsed cache-control header dict.
+
+empty (Any) – The value to use if the key is present without a value.
+
+type (type[Any] | None) – The type to convert the string value to instead of a string. If conversion raises a ValueError, the returned value is None.
+
+doc (str | None) – The docstring for the property. If not given, it is generated based on the other params.
+
+Return type:
+Any
+
+Changed in version 3.1: Added the doc param.
+
+Changelog
+copy()
+Return a shallow copy of the dict.
+
+get(key, default=None, /)
+Return the value for key if key is in the dictionary, else default.
+
+items()
+Return a set-like object providing a view on the dict’s items.
+
+keys()
+Return a set-like object providing a view on the dict’s keys.
+
+to_header()
+Convert the stored values into a cache control header.
+
+Return type:
+str
+
+values()
+Return an object providing a view on the dict’s values.
+
+property max_age
+The max-age attribute. A int, or None if not present.
+
+property max_stale
+The max-stale attribute. A int, True if present with no value, or None if not present.
+
+property min_fresh
+The min-fresh attribute. A int, or None if not present.
+
+property no_cache
+The no-cache attribute. A bool, either present or not.
+
+property no_store
+The no-store attribute. A bool, either present or not.
+
+property no_transform
+The no-transform attribute. A bool, either present or not.
+
+property only_if_cached
+The only-if-cached attribute. A bool, either present or not.
+
+property stale_if_error
+The stale-if-error attribute. A int, or None if not present.
+
+class werkzeug.datastructures.ResponseCacheControl(values=(), on_update=None)
+A cache control for responses. Unlike RequestCacheControl this is mutable and gives access to response-relevant cache control headers.
+
+To get a header of the ResponseCacheControl object again you can convert the object into a string or call the to_header() method. If you plan to subclass it and add your own items have a look at the sourcecode for that class.
+
+Changed in version 3.1: Dict values are always str | None. Setting properties will convert the value to a string. Setting a non-bool property to False is equivalent to setting it to None. Getting typed properties will return None if conversion raises ValueError, rather than the string.
+
+Changed in version 3.1: no_cache is True if present without a value, rather than "*".
+
+Changed in version 3.1: private is True if present without a value, rather than "*".
+
+Changed in version 3.1: no_transform is a boolean. Previously it was mistakenly always None.
+
+Changed in version 3.1: Added the must_understand, stale_while_revalidate, and stale_if_error properties.
+
+Changelog
+Parameters:
+values (cabc.Mapping[str, t.Any] | cabc.Iterable[tuple[str, t.Any]] | None)
+
+on_update (cabc.Callable[[_CacheControl], None] | None)
+
+static cache_property(key, empty, type, *, doc=None)
+Return a new property object for a cache header. Useful if you want to add support for a cache extension in a subclass.
+
+Parameters:
+key (str) – The attribute name present in the parsed cache-control header dict.
+
+empty (Any) – The value to use if the key is present without a value.
+
+type (type[Any] | None) – The type to convert the string value to instead of a string. If conversion raises a ValueError, the returned value is None.
+
+doc (str | None) – The docstring for the property. If not given, it is generated based on the other params.
+
+Return type:
+Any
+
+Changed in version 3.1: Added the doc param.
+
+Changelog
+clear()
+Remove all items from the dict.
+
+Return type:
+None
+
+copy()
+Return a shallow copy of the dict.
+
+classmethod fromkeys(iterable, value=None, /)
+Create a new dictionary with keys from iterable and values set to value.
+
+get(key, default=None, /)
+Return the value for key if key is in the dictionary, else default.
+
+items()
+Return a set-like object providing a view on the dict’s items.
+
+keys()
+Return a set-like object providing a view on the dict’s keys.
+
+pop(k[, d]) → v, remove specified key and return the corresponding value.
+If the key is not found, return the default if given; otherwise, raise a KeyError.
+
+Parameters:
+self (te.Self)
+
+key (K)
+
+default (V | T)
+
+Return type:
+V | T
+
+popitem()
+Remove and return a (key, value) pair as a 2-tuple.
+
+Pairs are returned in LIFO (last-in, first-out) order. Raises KeyError if the dict is empty.
+
+Return type:
+tuple[K, V]
+
+setdefault(key, default=None)
+Insert key with a value of default if key is not in the dictionary.
+
+Return the value for key if key is in the dictionary, else default.
+
+Parameters:
+self (te.Self)
+
+key (K)
+
+default (V | None)
+
+Return type:
+V
+
+to_header()
+Convert the stored values into a cache control header.
+
+Return type:
+str
+
+update([E, ]**F) → None.  Update D from mapping/iterable E and F.
+If E is present and has a .keys() method, then does: for k in E.keys(): D[k] = E[k] If E is present and lacks a .keys() method, then does: for k, v in E: D[k] = v In either case, this is followed by: for k in F: D[k] = F[k]
+
+Parameters:
+arg (Mapping[K, V] | Iterable[tuple[K, V]] | None)
+
+kwargs (V)
+
+Return type:
+None
+
+values()
+Return an object providing a view on the dict’s values.
+
+property immutable
+The immutable attribute. A bool, either present or not.
+
+property max_age
+The max-age attribute. A int, or None if not present.
+
+property must_revalidate
+The must-revalidate attribute. A bool, either present or not.
+
+property must_understand
+The must-understand attribute. A bool, either present or not.
+
+property no_cache
+The no-cache attribute. A str, True if present with no value, or None if not present.
+
+property no_store
+The no-store attribute. A bool, either present or not.
+
+property no_transform
+The no-transform attribute. A bool, either present or not.
+
+property private
+The private attribute. A str, True if present with no value, or None if not present.
+
+property proxy_revalidate
+The proxy-revalidate attribute. A bool, either present or not.
+
+property public
+The public attribute. A bool, either present or not.
+
+property s_maxage
+The s-maxage attribute. A int, or None if not present.
+
+property stale_if_error
+The stale-if-error attribute. A int, or None if not present.
+
+property stale_while_revalidate
+The stale-while-revalidate attribute. A int, or None if not present.
+
+class werkzeug.datastructures.ETags(strong_etags=None, weak_etags=None, star_tag=False)
+A set that can be used to check if one etag is present in a collection of etags.
+
+Parameters:
+strong_etags (cabc.Iterable[str] | None)
+
+weak_etags (cabc.Iterable[str] | None)
+
+star_tag (bool)
+
+as_set(include_weak=False)
+Convert the ETags object into a python set. Per default all the weak etags are not part of this set.
+
+Parameters:
+include_weak (bool)
+
+Return type:
+set[str]
+
+is_weak(etag)
+Check if an etag is weak.
+
+Parameters:
+etag (str)
+
+Return type:
+bool
+
+is_strong(etag)
+Check if an etag is strong.
+
+Parameters:
+etag (str)
+
+Return type:
+bool
+
+contains_weak(etag)
+Check if an etag is part of the set including weak and strong tags.
+
+Parameters:
+etag (str)
+
+Return type:
+bool
+
+contains(etag)
+Check if an etag is part of the set ignoring weak tags. It is also possible to use the in operator.
+
+Parameters:
+etag (str)
+
+Return type:
+bool
+
+contains_raw(etag)
+When passed a quoted tag it will check if this tag is part of the set. If the tag is weak it is checked against weak and strong tags, otherwise strong only.
+
+Parameters:
+etag (str)
+
+Return type:
+bool
+
+to_header()
+Convert the etags set into a HTTP header string.
+
+Return type:
+str
+
+class werkzeug.datastructures.Authorization(auth_type, data=None, token=None)
+Represents the parts of an Authorization request header.
+
+Request.authorization returns an instance if the header is set.
+
+An instance can be used with the test Client request methods’ auth parameter to send the header in test requests.
+
+Depending on the auth scheme, either parameters or token will be set. The Basic scheme’s token is decoded into the username and password parameters.
+
+For convenience, auth["key"] and auth.key both access the key in the parameters dict, along with auth.get("key") and "key" in auth.
+
+Changelog
+Parameters:
+auth_type (str)
+
+data (dict[str, str | None] | None)
+
+token (str | None)
+
+type
+The authorization scheme, like basic, digest, or bearer.
+
+parameters
+A dict of parameters parsed from the header. Either this or token will have a value for a given scheme.
+
+token
+A token parsed from the header. Either this or parameters will have a value for a given scheme.
+
+Changelog
+classmethod from_header(value)
+Parse an Authorization header value and return an instance, or None if the value is empty.
+
+Parameters:
+value (str | None) – The header value to parse.
+
+Return type:
+te.Self | None
+
+Changelog
+to_header()
+Produce an Authorization header value representing this data.
+
+Changelog
+Return type:
+str
+
+class werkzeug.datastructures.WWWAuthenticate(auth_type, values=None, token=None)
+Represents the parts of a WWW-Authenticate response header.
+
+Set Response.www_authenticate to an instance of list of instances to set values for this header in the response. Modifying this instance will modify the header value.
+
+Depending on the auth scheme, either parameters or token should be set. The Basic scheme will encode username and password parameters to a token.
+
+For convenience, auth["key"] and auth.key both act on the parameters dict, and can be used to get, set, or delete parameters. auth.get("key") and "key" in auth are also provided.
+
+Changelog
+Parameters:
+auth_type (str)
+
+values (dict[str, str | None] | None)
+
+token (str | None)
+
+property type: str
+The authorization scheme, like basic, digest, or bearer.
+
+property parameters: dict[str, str | None]
+A dict of parameters for the header. Only one of this or token should have a value for a given scheme.
+
+property token: str | None
+A dict of parameters for the header. Only one of this or token should have a value for a given scheme.
+
+classmethod from_header(value)
+Parse a WWW-Authenticate header value and return an instance, or None if the value is empty.
+
+Parameters:
+value (str | None) – The header value to parse.
+
+Return type:
+te.Self | None
+
+Changelog
+to_header()
+Produce a WWW-Authenticate header value representing this data.
+
+Return type:
+str
+
+class werkzeug.datastructures.IfRange(etag=None, date=None)
+Very simple object that represents the If-Range header in parsed form. It will either have neither a etag or date or one of either but never both.
+
+Changelog
+Parameters:
+etag (str | None)
+
+date (datetime | None)
+
+etag
+The etag parsed and unquoted. Ranges always operate on strong etags so the weakness information is not necessary.
+
+date
+The date in parsed format or None.
+
+to_header()
+Converts the object back into an HTTP header.
+
+Return type:
+str
+
+class werkzeug.datastructures.Range(units, ranges)
+Represents a Range header. All methods only support only bytes as the unit. Stores a list of ranges if given, but the methods only work if only one range is provided.
+
+Raises:
+ValueError – If the ranges provided are invalid.
+
+Parameters:
+units (str)
+
+ranges (cabc.Sequence[tuple[int, int | None]])
+
+Changelog
+units
+The units of this range. Usually “bytes”.
+
+ranges
+A list of (begin, end) tuples for the range header provided. The ranges are non-inclusive.
+
+range_for_length(length)
+If the range is for bytes, the length is not None and there is exactly one range and it is satisfiable it returns a (start, stop) tuple, otherwise None.
+
+Parameters:
+length (int | None)
+
+Return type:
+tuple[int, int] | None
+
+make_content_range(length)
+Creates a ContentRange object from the current range and given content length.
+
+Parameters:
+length (int | None)
+
+Return type:
+ContentRange | None
+
+to_header()
+Converts the object back into an HTTP header.
+
+Return type:
+str
+
+to_content_range_header(length)
+Converts the object into Content-Range HTTP header, based on given length
+
+Parameters:
+length (int | None)
+
+Return type:
+str | None
+
+class werkzeug.datastructures.ContentRange(units, start, stop, length=None, on_update=None)
+Represents the content range header.
+
+Changelog
+Parameters:
+units (str | None)
+
+start (int | None)
+
+stop (int | None)
+
+length (int | None)
+
+on_update (cabc.Callable[[ContentRange], None] | None)
+
+units: str | None
+The units to use, usually “bytes”
+
+start: int | None
+The start point of the range or None.
+
+stop: int | None
+The stop point of the range (non-inclusive) or None. Can only be None if also start is None.
+
+length: int | None
+The length of the range or None.
+
+set(start, stop, length=None, units='bytes')
+Simple method to update the ranges.
+
+Parameters:
+start (int | None)
+
+stop (int | None)
+
+length (int | None)
+
+units (str | None)
+
+Return type:
+None
+
+unset()
+Sets the units to None which indicates that the header should no longer be used.
+
+Return type:
+None
+
+Others
+class werkzeug.datastructures.FileStorage(stream=None, filename=None, name=None, content_type=None, content_length=None, headers=None)
+The FileStorage class is a thin wrapper over incoming files. It is used by the request object to represent uploaded files. All the attributes of the wrapper stream are proxied by the file storage so it’s possible to do storage.read() instead of the long form storage.stream.read().
+
+Parameters:
+stream (t.IO[bytes] | None)
+
+filename (str | None)
+
+name (str | None)
+
+content_type (str | None)
+
+content_length (int | None)
+
+headers (Headers | None)
+
+stream
+The input stream for the uploaded file. This usually points to an open temporary file.
+
+filename
+The filename of the file on the client. Can be a str, or an instance of os.PathLike.
+
+name
+The name of the form field.
+
+headers
+The multipart headers as Headers object. This usually contains irrelevant information but in combination with custom multipart requests the raw headers might be interesting.
+
+Changelog
+property content_type: str | None
+The content-type sent in the header. Usually not available
+
+property content_length: int
+The content-length sent in the header. Usually not available
+
+property mimetype: str
+Like content_type, but without parameters (eg, without charset, type etc.) and always lowercase. For example if the content type is text/HTML; charset=utf-8 the mimetype would be 'text/html'.
+
+Changelog
+property mimetype_params: dict[str, str]
+The mimetype parameters as dict. For example if the content type is text/html; charset=utf-8 the params would be {'charset': 'utf-8'}.
+
+Changelog
+save(dst, buffer_size=16384)
+Save the file to a destination path or file object. If the destination is a file object you have to close it yourself after the call. The buffer size is the number of bytes held in memory during the copy process. It defaults to 16KB.
+
+For secure file saving also have a look at secure_filename().
+
+Parameters:
+dst (str | PathLike[str] | IO[bytes]) – a filename, os.PathLike, or open file object to write to.
+
+buffer_size (int) – Passed as the length parameter of shutil.copyfileobj().
+
+Return type:
+None
+
+Changelog
+close()
+Close the underlying file if possible.
+
+Return type:
+None
