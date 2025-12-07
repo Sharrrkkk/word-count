@@ -38,4 +38,4 @@ if __name__ == "__main__":
     as a module in another file. Debug mode is enabled to allow
     automatic reloads and detailed error messages during development.
     """
-    #app.run(debug=True)
+    app.run(host="localhost", port=5000, debug=True)
