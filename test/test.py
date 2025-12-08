@@ -1,10 +1,12 @@
 import pytest
+import os
+import pathlib
 
 
 __all__: list[str] = []
 
 
-def _test_doctest()-> None:
+def _test_doctest():
     """
     Run all doctests in the current module.
 
@@ -18,8 +20,10 @@ def _test_doctest()-> None:
     Returns:
         None
     """
-    pytest.main(["--doctest-modules", ".", "-vv"])
+    test_path: pathlib.Path = pathlib.Path(__file__).resolve().parent.parent
+    os.chdir(test_path)
+    return pytest.main(["--doctest-modules", ".", "-vv"])
 
 
 if __name__ == "__main__":
-    _test_doctest()
+    raise SystemExit(_test_doctest())
