@@ -1,5 +1,5 @@
 import flask #Blueprint, request, render_template, Response
-import flask_cors # cross_origin
+import flask_cors # CORS
 from werkzeug.datastructures import FileStorage
 import typing # Any
 import pathlib # PATH
