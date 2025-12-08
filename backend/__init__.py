@@ -1,3 +1,12 @@
+"""
+Blueprint aggregator module.
+
+Exports the application's registered blueprints for HOME, API, and embedded routes:
+
+- home_bp
+- api_bp
+- embedded_bp
+"""
 from .blueprints.home.home import home_bp
 from .blueprints.api.api import api_bp
 from .blueprints.embedded.embedded import embedded_bp

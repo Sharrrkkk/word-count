@@ -5,10 +5,12 @@
     <head>
         <meta charset="UTF-8">
         <title>Welcome</title>
+        <!-- Link to external stylesheet -->
         <link rel="stylesheet" href="styles/style.css">
     </head>
 
     <body>
+        <!-- File input section -->
         <label for="file">File</label>
         <br>
         <input type="file" id="file" name="file">
@@ -17,6 +19,7 @@
         <br>
         <br>
 
+         <!-- Mode selector -->
         <label for="status">MODE</label>
         <br>
         <select id="status" name="status">
@@ -24,6 +27,7 @@
             <option value="embedded">EMBEDDED</option>
         </select>
 
+         <!-- Results container -->
         <div id="container">
         <h1>Results:</h1>
         <h2>Mode: <mark><div id="mode">API</div></mark></h2>
@@ -34,6 +38,7 @@
         <h2>Total Chars: <div id="chars"></div></h2>
         </div>
 
+         <!-- Main JS script -->
         <script src="scripts/main.js"></script>
     </body>
 

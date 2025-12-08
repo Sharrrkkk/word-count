@@ -1,5 +1,21 @@
 <!DOCTYPE html>
 
+<!--
+Home page template for file upload and statistics display.
+
+- Form submits a file to `home_bp.home` via POST.
+- Displays results of the uploaded file:
+    - mode (str)
+    - filename (str)
+    - lines (int)
+    - words (int)
+    - bytes (int)
+    - chars (int)
+
+Dependencies:
+- Flask `render_template` passes the context variables.
+- Uses multipart/form-data for file upload.
+-->
 
 <html lang="en">
 

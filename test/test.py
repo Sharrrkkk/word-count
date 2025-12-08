@@ -1,6 +1,20 @@
-import pytest
-import os
-import pathlib
+"""
+Test runner module.
+
+Provides a helper function to run all doctests in the project using pytest,
+adjusting the working directory to the project root before execution.
+
+Modules:
+    pytest: Runs doctests and collects results.
+    os: Changes the working directory.
+    pathlib: Resolves paths.
+
+__all__:
+    Empty, as this module is intended for internal test execution.
+"""
+import pytest # main
+import os # chdir
+import pathlib # Path
 
 
 __all__: list[str] = []
@@ -8,17 +22,16 @@ __all__: list[str] = []
 
 def _test_doctest():
     """
-    Run all doctests in the current module.
+    Run all doctests in the project.
 
-    This function imports Python's built-in doctest module and executes
-    all doctests found in the file. It is mainly used during development
-    to verify that example-based tests behave as expected.
+    Changes the working directory to the project root and executes pytest
+    with doctest enabled, ensuring all modules are tested consistently.
 
     Args:
         None
 
     Returns:
-        None
+        int: Exit code returned by pytest.
     """
     test_path: pathlib.Path = pathlib.Path(__file__).resolve().parent.parent
     os.chdir(test_path)
@@ -26,4 +39,15 @@ def _test_doctest():
 
 
 if __name__ == "__main__":
+    """
+    Entry point used when running this module directly.
+
+    When the file is executed as a script (e.g., `python3 test.py`), this block
+    invokes `_test_doctest()` and immediately terminates the process with itsecho
+    result code by raising `SystemExit`.
+
+    Using `raise SystemExit(...)` ensures that any exit status returned by
+    pytest/doctest is propagated to the calling shell, allowing proper failure
+    detection in CI/CD pipelines or external scripts.
+    """
     raise SystemExit(_test_doctest())

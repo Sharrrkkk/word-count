@@ -1,22 +1,16 @@
 """
 Main Flask application module.
 
-This module initializes the Flask app, configures CORS, and defines
-the application's public endpoints:
+Initializes the Flask app and registers blueprints for the application.
+All blueprints support file uploads.
 
-- GET /               → Render the home page.
-- POST /              → Process an uploaded file and display statistics.
-- POST /api           → Return file statistics as JSON.
-- POST /embedded      → Render an embedded page with file statistics.
+- home_bp     → GET / and POST /, handles SSR pages and returns file statistics.
+- api_bp      → POST /api, returns file statistics as JSON.
+- embedded_bp → POST /embedded, renders embedded pages with file stats.
 
-The module depends on:
+Dependencies:
 - flask: Core web framework.
 - flask_cors: CORS support.
-- pathlib: Filesystem path utilities.
-- typing: Type annotations (ByteString, NamedTuple).
-
-All text-file processing is delegated to `word_count()`, which returns
-a `Data` NamedTuple with line, word, byte, and character counts.
 """
 import flask #Flask
 from backend import home_bp, api_bp, embedded_bp

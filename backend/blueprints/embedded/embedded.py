@@ -1,3 +1,20 @@
+"""
+Embedded blueprint module.
+
+Provides the `embedded_bp` Blueprint to handle file uploads and
+render embedded HTML pages with file statistics.
+
+- POST /embedded → Processes uploaded files and returns an HTML
+  page displaying mode, filename, lines, words, bytes, and character counts.
+
+Dependencies:
+- flask: Core web framework (Blueprint, request, render_template, Response).
+- flask_cors: Enables CORS for cross-origin requests.
+- werkzeug.datastructures: FileStorage for uploaded files.
+- typing: Type annotations.
+- pathlib: File system path utilities.
+- word_count module: Provides `Data`, `word_count`, `word_count_empty`.
+"""
 import flask #Blueprint, request, render_template, Response
 import flask_cors # CORS
 from werkzeug.datastructures import FileStorage
@@ -63,6 +80,15 @@ def embedded()-> flask.Response:
 
 
 def _test()-> None:
+    """
+    Run all doctests in this module.
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     import doctest
     doctest.testmod(verbose=True)
 

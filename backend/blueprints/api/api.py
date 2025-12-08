@@ -1,4 +1,21 @@
-import flask #Blueprint, request, render_template, Response
+"""
+API blueprint module.
+
+Provides the `api_bp` Blueprint to handle file uploads and return
+file statistics as JSON.
+
+- POST /api → Accepts uploaded files and returns mode, filename, lines, words, bytes,
+  and character counts in JSON format.
+
+Dependencies:
+- flask: Core web framework (Blueprint, request, Response).
+- flask_cors: Enables CORS for cross-origin requests.
+- werkzeug.datastructures: FileStorage for uploaded files.
+- typing: Type annotations.
+- pathlib: File system path utilities.
+- word_count module: Provides `Data`, `word_count`, `word_count_empty`.
+"""
+import flask #Blueprint, request, Response
 import flask_cors # CORS
 from werkzeug.datastructures import FileStorage
 import typing # Any
@@ -60,6 +77,15 @@ def api()-> flask.Response:
 
 
 def _test()-> None:
+    """
+    Run all doctests in this module.
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     import doctest
     doctest.testmod(verbose=True)
 

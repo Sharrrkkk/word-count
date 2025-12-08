@@ -1,3 +1,6 @@
+"""
+Exports the home blueprint.
+"""
 from .home import home_bp
 
 

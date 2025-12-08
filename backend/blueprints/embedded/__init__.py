@@ -1,3 +1,6 @@
+"""
+Exports the embedded blueprint.
+"""
 from .embedded import embedded_bp
 
 

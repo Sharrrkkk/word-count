@@ -1,3 +1,18 @@
+"""
+Home blueprint module.
+
+Defines `home_bp` for handling SSR pages and file uploads:
+
+- GET /  → Render home page with default mode.
+- POST / → Process uploaded file and render statistics using `word_count()`.
+
+Dependencies:
+- flask: Blueprint, request, render_template, Response.
+- werkzeug.datastructures: FileStorage for uploaded files.
+- typing: Type annotations.
+- pathlib: Path utilities.
+- word_count: `Data`, `word_count`, `word_count_empty`.
+"""
 import flask #Blueprint, request, render_template, Response
 from werkzeug.datastructures import FileStorage
 import typing # Any
@@ -59,6 +74,15 @@ def home()-> flask.Response:
 
 
 def _test()-> None:
+    """
+    Run all doctests in this module.
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     import doctest
     doctest.testmod(verbose=True)
 

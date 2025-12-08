@@ -1,3 +1,4 @@
+/* Make all div elements inline to keep labels and results on same line */
 div {
     display: inline;
 }

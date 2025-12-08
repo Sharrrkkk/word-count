@@ -1,3 +1,19 @@
+"""
+File statistics module.
+
+Provides functionality to compute aggregated statistics from text files,
+including line, word, byte, and character counts.
+
+Exports:
+- Data: NamedTuple holding file statistics and rendering mode.
+- word_count: Main function to analyze a file and return Data.
+- word_count_empty: Returns a default Data object when no file is provided.
+
+Dependencies:
+- werkzeug.datastructures.FileStorage: For handling uploaded files.
+- pathlib: Filesystem path utilities.
+- typing: Type annotations (BytesString, NamedTuple).
+"""
 from werkzeug.datastructures import FileStorage
 import pathlib # PATH
 import typing # BytesString, NamedTuple
@@ -10,10 +26,12 @@ class Data(typing.NamedTuple):
     """
     Aggregated file statistics.
 
-    Represents the results of `word_count`, containing line, word, byte,
-    and character counts extracted from a UTF-8 text file.
+    Represents the results of `word_count`, including metadata and counts
+    extracted from a UTF-8 text file.
 
     Attributes:
+        mode (str): Processing mode ("SSR", "API", "EMBEDDED").
+        filename (str): Name of the file processed.
         lines (int): Total number of lines.
         words (int): Total number of whitespace-delimited words.
         bytes (int): Total number of raw bytes in the file.
@@ -37,8 +55,8 @@ def word_count(file: FileStorage, filename: str, mode: str)-> Data:
 
     Args:
         file (FileStorage): A binary file-like object opened in "rb" mode.
-        filename (str): 
-        mode (str): 
+        filename (str): Name of the uploaded file.
+        mode (str): Processing mode ("HOME", "API", or "EMBEDDED").
 
     Returns:
     Data (typing.NamedTuple): A NamedTuple with:
@@ -52,12 +70,12 @@ def word_count(file: FileStorage, filename: str, mode: str)-> Data:
     Examples:
         >>> filename: pathlib.Path = pathlib.Path(__file__).absolute().parent / "test"  / "test.txt"
         >>> with open(filename, "rb") as file:
-        ...     word_count(file, 'test.txt', 'SSR')
-        Data(mode='SSR', filename='test.txt', lines=1364, words=6288, bytes=41577, chars=41335)
+        ...     word_count(file, 'test.txt', 'HOME')
+        Data(mode='HOME', filename='test.txt', lines=1364, words=6288, bytes=41577, chars=41335)
         >>> filename: pathlib.Path = pathlib.Path(__file__).absolute().parent / "test" / "spencer.jpg"
         >>> with open(filename, "rb") as file:
-        ...     word_count(file, 'spencer.jpg', 'SSR')
-        Data(mode='SSR', filename='spencer.jpg', lines=242, words=0, bytes=63496, chars=0)
+        ...     word_count(file, 'spencer.jpg', 'HOME')
+        Data(mode='HOME', filename='spencer.jpg', lines=242, words=0, bytes=63496, chars=0)
     """
     lines: int = -1
     words: int = 0
@@ -82,6 +100,13 @@ def word_count(file: FileStorage, filename: str, mode: str)-> Data:
 
 def word_count_empty(mode: str)-> Data:
     """
+    Return an empty Data object when no file is provided.
+
+    Args:
+        mode (str): The processing mode (e.g., "api" or "embedded").
+
+    Returns:
+        Data: A Data object with zero counts and placeholder filename.
     """
     return Data(mode, 'No File', 0, 0, 0, 0)
 
@@ -95,7 +120,7 @@ def _check_file_encoding(file: FileStorage)-> bool:
     it is treated as binary. The file stream position is restored after reading.
 
     Args:
-        file (werkzeug.datastructures.FileStorage): The uploaded file stream
+        file (FileStorage): The uploaded file stream
             provided by Flask/Werkzeug.
 
     Returns:
@@ -121,6 +146,15 @@ def _check_file_encoding(file: FileStorage)-> bool:
 
 
 def _test()-> None:
+    """
+    Run all doctests in this module.
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     import doctest
     doctest.testmod(verbose=True)
 
