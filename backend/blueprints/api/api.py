@@ -11,9 +11,15 @@ __all__: list[str] = ["api_bp"]
 
 api_bp: flask.Blueprint = flask.Blueprint("api_bp", __name__) 
 
+flask_cors.CORS(api_bp, resources={r"/*": {
+    "origins": 
+        ["https://sharrrkkk.github.io/word-count/", 
+        "https://sharrrkkk.github.io/*",
+        "http://localhost:8080"]
+}})
+
 
 @api_bp.route("/api", methods=["POST"])
-@flask_cors.cross_origin(origins=["https://sharrrkkk.github.io/", "http://localhost:8080"], supports_credentials=False)
 def api()-> flask.Response:
     """
     Process an uploaded text file and return line, word, byte, and character counts.
