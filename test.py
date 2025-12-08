@@ -18,7 +18,7 @@ def _test_doctest()-> None:
     Returns:
         None
     """
-    pytest.main(["--doctest-modules", "--ignore='.*'", "../", "-vv"])
+    pytest.main(["--doctest-modules", ".", "-vv"])
 
 
 if __name__ == "__main__":

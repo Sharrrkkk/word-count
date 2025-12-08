@@ -36,9 +36,9 @@ This project is intended 100% for educational purposes.
 │   │   │   │   └── word_count_embedded.html
 │   │   │   └── test
 │   │   │       └── test.txt
-│   │   └── ssr
+│   │   └── home
 │   │       ├── __init__.py
-│   │       ├── ssr.py
+│   │       ├── home.py
 │   │       ├── templates
 │   │       │   └── word_count_home.html
 │   │       └── test
