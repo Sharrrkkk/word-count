@@ -77,7 +77,7 @@ def word_count(file: FileStorage, filename: str, mode: str)-> Data:
         ...     word_count(file, 'spencer.jpg', 'HOME')
         Data(mode='HOME', filename='spencer.jpg', lines=242, words=0, bytes=63496, chars=0)
     """
-    lines: int = -1
+    lines: int = 0
     words: int = 0
     bytes: int = 0
     chars: int = 0

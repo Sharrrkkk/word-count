@@ -55,5 +55,6 @@ This project is intended 100% for educational purposes.
 │   └── main.js
 ├── styles
 │   └── style.css
-└── test.py
+└── test
+    └── test.py    
 ```
